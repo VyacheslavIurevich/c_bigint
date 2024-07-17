@@ -13,8 +13,8 @@ typedef struct num_node_s {
 typedef struct {
   num_node_t *first;
   num_node_t *last;
-  int8_t sign: 2; // sign is -2 if sign isn't set, -1 if number < 0, 0 if number ==
-               // 0, 1 if number > 0
+  int8_t sign : 2; // sign is -2 if sign isn't set, -1 if number < 0, 0 if
+                   // number == 0, 1 if number > 0
   size_t size;
   size_t capacity;
 } num_dllist_t;

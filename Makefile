@@ -13,5 +13,7 @@ $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET)
-.PHONY: clean
+format:
+	find . -regex '.*\.\(c\|h\|cpp\|hpp\)' -exec clang-format -style=file -i {} \;
+.PHONY: clean, format
 
