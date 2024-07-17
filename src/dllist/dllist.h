@@ -23,8 +23,7 @@ dllist_t *dllist_init(uint8_t *exit_code);
 
 void dllist_clear(dllist_t *dllist, uint8_t *exit_code);
 
-void dllist_add_start(dllist_t *dllist, uint64_t element,
-                      uint8_t *exit_code);
+void dllist_add_start(dllist_t *dllist, uint64_t element, uint8_t *exit_code);
 
 void dllist_add_end(dllist_t *dllist, uint64_t element, uint8_t *exit_code);
 

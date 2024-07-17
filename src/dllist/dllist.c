@@ -45,8 +45,7 @@ void dllist_clear(dllist_t *dllist, uint8_t *exit_code) {
   free(dllist);
 }
 
-void dllist_add_start(dllist_t *dllist, uint64_t element,
-                      uint8_t *exit_code) {
+void dllist_add_start(dllist_t *dllist, uint64_t element, uint8_t *exit_code) {
   dllist_node_t *node = (dllist_node_t *)malloc(sizeof(dllist_node_t));
 
   if ((node == NULL) || (dllist == NULL)) {
@@ -74,8 +73,7 @@ void dllist_add_start(dllist_t *dllist, uint64_t element,
   ++dllist->size;
 }
 
-void dllist_add_end(dllist_t *dllist, uint64_t element,
-                    uint8_t *exit_code) {
+void dllist_add_end(dllist_t *dllist, uint64_t element, uint8_t *exit_code) {
   dllist_node_t *node = (dllist_node_t *)malloc(sizeof(dllist_node_t));
 
   if ((node == NULL) || (dllist == NULL)) {
