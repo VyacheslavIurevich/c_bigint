@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "Formatting the code"
+clang-format -style=llvm -dump-config > .clang-format
+clang-format -i src/*.c
+clang-format -i src/*.h
+rm .clang-format
+fi
+
