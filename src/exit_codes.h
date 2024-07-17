@@ -1,4 +1,3 @@
-#pragma once
 enum exit_code {
   all_fine = 0,
   commandline_args_error = 1,

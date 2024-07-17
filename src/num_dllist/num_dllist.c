@@ -1,9 +1,10 @@
 #include "num_dllist.h"
-#include "../calculator.h"
+#include "../exit_codes.h"
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-static num_dllist_t *dllist_init(uint8_t *exit_code) {
+num_dllist_t *dllist_init(uint8_t *exit_code) {
   num_dllist_t *dllist = (num_dllist_t *)malloc(sizeof(num_dllist_t));
 
   if (dllist == NULL) {
@@ -21,7 +22,7 @@ static num_dllist_t *dllist_init(uint8_t *exit_code) {
   return dllist;
 }
 
-static void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code) {
+void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code) {
   num_node_t *temp;
 
   if (dllist == NULL) {
@@ -44,8 +45,8 @@ static void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code) {
   free(dllist);
 }
 
-static void dllist_add_start(num_dllist_t *dllist, uint64_t element,
-                             uint8_t *exit_code) {
+void dllist_add_start(num_dllist_t *dllist, uint64_t element,
+                      uint8_t *exit_code) {
   num_node_t *node = (num_node_t *)malloc(sizeof(num_node_t));
 
   if ((node == NULL) || (dllist == NULL)) {
@@ -73,8 +74,8 @@ static void dllist_add_start(num_dllist_t *dllist, uint64_t element,
   ++dllist->size;
 }
 
-static void dllist_add_end(num_dllist_t *dllist, uint64_t element,
-                           uint8_t *exit_code) {
+void dllist_add_end(num_dllist_t *dllist, uint64_t element,
+                    uint8_t *exit_code) {
   num_node_t *node = (num_node_t *)malloc(sizeof(num_node_t));
 
   if ((node == NULL) || (dllist == NULL)) {
@@ -103,7 +104,7 @@ static void dllist_add_end(num_dllist_t *dllist, uint64_t element,
   ++dllist->size;
 }
 
-static void dllist_print(num_dllist_t *dllist, uint8_t *exit_code) {
+void dllist_print(num_dllist_t *dllist, uint8_t *exit_code) {
   num_node_t *temp = dllist->first;
   bool flag = false;
 

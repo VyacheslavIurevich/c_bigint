@@ -19,14 +19,13 @@ typedef struct {
   size_t capacity;
 } num_dllist_t;
 
-static num_dllist_t *dllist_init(uint8_t *exit_code);
+num_dllist_t *dllist_init(uint8_t *exit_code);
 
-static void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code);
+void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code);
 
-static void dllist_add_start(num_dllist_t *dllist, uint64_t element,
-                             uint8_t *exit_code);
+void dllist_add_start(num_dllist_t *dllist, uint64_t element,
+                      uint8_t *exit_code);
 
-static void dllist_add_end(num_dllist_t *dllist, uint64_t element,
-                           uint8_t *exit_code);
+void dllist_add_end(num_dllist_t *dllist, uint64_t element, uint8_t *exit_code);
 
-static void dllist_print(num_dllist_t *dllist, uint8_t *exit_code);
+void dllist_print(num_dllist_t *dllist, uint8_t *exit_code);
