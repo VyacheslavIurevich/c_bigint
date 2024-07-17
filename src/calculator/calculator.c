@@ -1,315 +1,22 @@
+#include "calculator.h"
+#include "../dllist/dllist.h"
+#include "../exit_codes.h"
+#include "../queue/queue.h"
+#include "../stack/stack.h"
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define EXITCODE_ALL_FINE 0
-#define EXITCODE_COMMANDLINE_ARGS_ERROR 1
-#define EXITCODE_NO_INFIX 2
-#define EXITCODE_NO_DIVISION 3
-#define EXITCODE_INPUT_ERROR 4
-#define EXITCODE_OTHER_ERRORS 5
-#define QUEUE_CAPACITY 5000
-#define DLLIST_CAPACITY 300
-#define SIGN_NOT_SET -2
-#define BASE                                                                   \
-  9 // my numerical system base is 10^9, if you change it nothing will work
-#define TEN_POWER_BASE 1000000000
-#define DEPTH 25
 
-typedef struct num_node_s {
-  uint64_t digit;
-  struct num_node_s *next;
-  struct num_node_s *prev;
-} num_node_t;
-
-typedef struct {
-  num_node_t *first;
-  num_node_t *last;
-  int8_t sign; // sign is -2 if sign isn't set, -1 if number < 0, 0 if number ==
-               // 0, 1 if number > 0
-  size_t size;
-  size_t capacity;
-} num_dllist_t;
-
-typedef struct {
-  num_dllist_t *res[DEPTH];
-  uint8_t top;
-} results_stack_t;
-
-typedef struct digits_node_s {
-  uint8_t decimal_digit;
-  struct digits_node_s *next;
-} digits_node_t;
-
-typedef struct {
-  digits_node_t *head;
-  digits_node_t *tail;
-  size_t size;
-  size_t capacity;
-} digits_queue_t;
-
-static num_dllist_t *dllist_init(uint8_t *exit_code) {
-  num_dllist_t *dllist = (num_dllist_t *)malloc(sizeof(num_dllist_t));
-
-  if (dllist == NULL) {
-    fprintf(stderr, "Cannot initialize double linked list\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-    return NULL;
-  }
-
-  dllist->first = NULL;
-  dllist->last = NULL;
-  dllist->sign = SIGN_NOT_SET;
-  dllist->size = 0;
-  dllist->capacity = DLLIST_CAPACITY;
-
-  return dllist;
-}
-
-static void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code) {
-  num_node_t *temp;
-
-  if (dllist == NULL) {
-    fprintf(stderr, "Cannot clear double linked list\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  while (dllist->first != NULL) {
-    temp = dllist->first;
-    dllist->first = temp->next;
-    free(temp);
-  }
-
-  dllist->first = NULL;
-  dllist->last = NULL;
-  dllist->sign = SIGN_NOT_SET;
-  dllist->size = 0;
-  dllist->capacity = 0;
-
-  free(dllist);
-}
-
-static void dllist_add_start(num_dllist_t *dllist, uint64_t element,
-                             uint8_t *exit_code) {
-  num_node_t *node = (num_node_t *)malloc(sizeof(num_node_t));
-
-  if ((node == NULL) || (dllist == NULL)) {
-    fprintf(stderr, "Cannot add element in the start of double linked list\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  if (dllist->size == dllist->capacity) {
-    fprintf(stderr, "Cannot add element in the start of double linked list "
-                    "because it is full\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  node->digit = element;
-  node->next = dllist->first;
-  node->prev = NULL;
-
-  if (dllist->first) {
-    dllist->first->prev = node;
-  }
-  dllist->first = node;
-
-  if (dllist->last == NULL) {
-    dllist->last = node;
-  }
-
-  ++dllist->size;
-}
-
-static void dllist_add_end(num_dllist_t *dllist, uint64_t element,
-                           uint8_t *exit_code) {
-  num_node_t *node = (num_node_t *)malloc(sizeof(num_node_t));
-
-  if ((node == NULL) || (dllist == NULL)) {
-    fprintf(stderr,
-            "Cannot add element to the end of the double linked list\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  if (dllist->size == dllist->capacity) {
-    fprintf(stderr, "Cannot add element to the end of the double linked list, "
-                    "because it is full\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  node->digit = element;
-  node->next = NULL;
-  node->prev = dllist->last;
-
-  if (dllist->last) {
-    dllist->last->next = node;
-  }
-  dllist->last = node;
-
-  if (dllist->first == NULL) {
-    dllist->first = node;
-  }
-
-  ++dllist->size;
-}
-
-static void dllist_print(num_dllist_t *dllist, uint8_t *exit_code) {
-  num_node_t *temp = dllist->first;
-  bool flag = false;
-
-  if (dllist == NULL) {
-    fprintf(stderr, "Cannot print answer \n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  if (dllist->sign == -1)
-    printf("-");
-
-  while (temp) {
-    if (flag) {
-      printf("%09lu", temp->digit);
-    } else {
-      printf("%ld", temp->digit);
-      flag = true;
-    }
-    temp = temp->next;
-  }
-  printf("\n");
-}
-
-static results_stack_t *stack_init(uint8_t *exit_code) {
-  results_stack_t *stack = (results_stack_t *)malloc(sizeof(results_stack_t));
-
-  if (stack == NULL) {
-    fprintf(stderr, "Cannot initialize stack\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-    return NULL;
-  }
-
-  stack->top = 0;
-
-  return stack;
-}
-
-static void stack_push(results_stack_t *stack, num_dllist_t *element,
-                       uint8_t *exit_code) {
-  if ((stack == NULL) || (element == NULL)) {
-    fprintf(stderr, "Cannot push element to stack\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-  if (stack->top < DEPTH) {
-    stack->res[stack->top] = element;
-    ++stack->top;
-  } else {
-    fprintf(stderr, "Stack is full, cannot push element\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-}
-
-static num_dllist_t *stack_pop(results_stack_t *stack, uint8_t *exit_code) {
-  num_dllist_t *elem;
-  if (stack->top) {
-    --stack->top;
-    elem = stack->res[stack->top];
-    return elem;
-  } else {
-    fprintf(stderr, "Cannot pop from empty stack\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-    return NULL;
-  }
-}
-
-static void stack_clear(results_stack_t *stack, uint8_t *exit_code) {
-  num_dllist_t *temp;
-
-  if (stack == NULL) {
-    fprintf(stderr, "Cannot clear stack\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  while (stack->top) {
-    temp = stack_pop(stack, exit_code);
-    dllist_clear(temp, exit_code);
-  }
-
-  free(stack);
-}
-
-static digits_queue_t *queue_init(uint8_t *exit_code) {
-  digits_queue_t *queue = (digits_queue_t *)malloc(sizeof(digits_queue_t));
-
-  if (queue == NULL) {
-    fprintf(stderr, "Cannot initialize queue\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-    return NULL;
-  }
-
-  queue->head = NULL;
-  queue->tail = NULL;
-  queue->size = 0;
-  queue->capacity = QUEUE_CAPACITY;
-
-  return queue;
-}
-
-static void queue_clear(digits_queue_t *queue, uint8_t *exit_code) {
-  digits_node_t *temp;
-
-  if (queue == NULL) {
-    fprintf(stderr, "Cannot clear queue\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  while (queue->head != NULL) {
-    temp = queue->head;
-    queue->head = queue->head->next;
-    free(temp);
-  }
-
-  queue->tail = NULL;
-  queue->size = 0;
-  queue->capacity = 0;
-
-  free(queue);
-}
-
-static void queue_add(digits_queue_t *queue, uint8_t element,
-                      uint8_t *exit_code) {
-  digits_node_t *node = (digits_node_t *)malloc(sizeof(digits_node_t));
-
-  if (node == NULL) {
-    fprintf(stderr, "Cannot create queue node\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  if (queue->size == queue->capacity) {
-    fprintf(stderr, "Queue is full, cannot add new node\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
-  }
-
-  node->decimal_digit = element;
-  node->next = NULL;
-
-  if (queue->head == NULL) {
-    // we had an empty queue and now the queue consists of 1 node
-    queue->head = node;
-    queue->tail = node;
-    ++queue->size;
-  } else {
-    queue->tail->next = node;
-    queue->tail = node;
-    ++queue->size;
-  }
-}
-
-static bool is_bigger(num_dllist_t *first_num, num_dllist_t *second_num,
-                      uint8_t *exit_code) {
-  num_node_t *temp_first = first_num->first, *temp_second = second_num->first;
+bool is_bigger(dllist_t *first_num, dllist_t *second_num, uint8_t *exit_code) {
+  dllist_node_t *temp_first = first_num->first,
+                *temp_second = second_num->first;
 
   if ((first_num == NULL) || (second_num == NULL)) {
     fprintf(stderr, "Cannot compare numbers\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
+    *exit_code = other_errors;
   }
 
   if (first_num->size > second_num->size)
@@ -331,17 +38,17 @@ static bool is_bigger(num_dllist_t *first_num, num_dllist_t *second_num,
   }
 }
 
-static num_dllist_t *zero(uint8_t *exit_code) {
-  num_dllist_t *result = dllist_init(exit_code);
+dllist_t *zero(uint8_t *exit_code) {
+  dllist_t *result = dllist_init(exit_code);
   dllist_add_start(result, 0, exit_code);
   result->sign = 0;
   return result;
 }
 
-static num_dllist_t *addition(num_dllist_t *first_num, num_dllist_t *second_num,
-                              bool negative, uint8_t *exit_code) {
-  num_dllist_t *result = dllist_init(exit_code);
-  num_node_t *temp_first = first_num->last, *temp_second = second_num->last;
+dllist_t *addition(dllist_t *first_num, dllist_t *second_num, bool negative,
+                   uint8_t *exit_code) {
+  dllist_t *result = dllist_init(exit_code);
+  dllist_node_t *temp_first = first_num->last, *temp_second = second_num->last;
   uint64_t digit_sum;
   uint8_t add_to_digit = 0;
   size_t first_size = first_num->size, second_size = second_num->size,
@@ -349,7 +56,7 @@ static num_dllist_t *addition(num_dllist_t *first_num, num_dllist_t *second_num,
 
   if ((first_num == NULL) || (second_num == NULL)) {
     fprintf(stderr, "Cannot add numbers\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
+    *exit_code = other_errors;
     return NULL;
   }
 
@@ -382,19 +89,18 @@ static num_dllist_t *addition(num_dllist_t *first_num, num_dllist_t *second_num,
   return result;
 }
 
-static num_dllist_t *subtraction(num_dllist_t *first_num,
-                                 num_dllist_t *second_num, bool negative,
-                                 uint8_t *exit_code) {
-  num_dllist_t *result = dllist_init(exit_code);
-  num_node_t *temp_first = first_num->last, *temp_second = second_num->last,
-             *search_node;
+dllist_t *subtraction(dllist_t *first_num, dllist_t *second_num, bool negative,
+                      uint8_t *exit_code) {
+  dllist_t *result = dllist_init(exit_code);
+  dllist_node_t *temp_first = first_num->last, *temp_second = second_num->last,
+                *search_node;
   uint64_t first_digit = temp_first->digit, second_digit = temp_second->digit,
            search_digit, digit_diff;
   uint8_t changed_digits = 0;
   bool to_reduce = false;
   if ((first_num == NULL) || (second_num == NULL)) {
     fprintf(stderr, "Cannot subtract numbers\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
+    *exit_code = other_errors;
     return NULL;
   }
 
@@ -439,17 +145,16 @@ static num_dllist_t *subtraction(num_dllist_t *first_num,
   return result;
 }
 
-static num_dllist_t *multiplication(num_dllist_t *first_num,
-                                    num_dllist_t *second_num, int8_t sign,
-                                    uint8_t *exit_code) {
-  num_dllist_t *cur_num, *result = dllist_init(exit_code), *temp;
-  num_node_t *temp_first = first_num->last, *temp_second;
+dllist_t *multiplication(dllist_t *first_num, dllist_t *second_num, int8_t sign,
+                         uint8_t *exit_code) {
+  dllist_t *cur_num, *result = dllist_init(exit_code), *temp;
+  dllist_node_t *temp_first = first_num->last, *temp_second;
   uint64_t first_digit, second_digit, partial = 0, remainder = 0,
                                       digits_product;
   uint16_t indent = 0, indent_idx;
   if ((first_num == NULL) || (second_num == NULL)) {
     fprintf(stderr, "Cannot multiplicate numbers\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
+    *exit_code = other_errors;
     return NULL;
   }
 
@@ -490,13 +195,11 @@ static num_dllist_t *multiplication(num_dllist_t *first_num,
   return result;
 }
 
-static num_dllist_t *calculate_operation_result(num_dllist_t *first_num,
-                                                num_dllist_t *second_num,
-                                                char operation,
-                                                uint8_t *exit_code) {
+dllist_t *calculate_operation_result(dllist_t *first_num, dllist_t *second_num,
+                                     char operation, uint8_t *exit_code) {
   if ((first_num == NULL) || (second_num == NULL)) {
     fprintf(stderr, "Cannot calculate operation result\n");
-    *exit_code = EXITCODE_OTHER_ERRORS;
+    *exit_code = other_errors;
     return NULL;
   } else if (operation == '+') {
     if (first_num->sign == 1) {
@@ -574,19 +277,17 @@ static num_dllist_t *calculate_operation_result(num_dllist_t *first_num,
   return NULL;
 }
 
-static bool isoperation(char ch) {
-  return ((ch == '+' || ch == '-' || ch == '*'));
-}
+bool isoperation(char ch) { return ((ch == '+' || ch == '-' || ch == '*')); }
 
-static void parse_commandline_args(int argc, char **argv, uint8_t *exit_code) {
+void parse_commandline_args(int argc, char **argv, uint8_t *exit_code) {
   if (argc == 2) {
     if (strcmp(argv[1], "--revpol") != 0) {
       if (strcmp(argv[1], "--infix") == 0) {
         fprintf(stderr, "This app doesn't support infix notation\n");
-        *exit_code = EXITCODE_NO_INFIX;
+        *exit_code = no_infix;
       } else {
         fprintf(stderr, "Incorrect command line argument\n");
-        *exit_code = EXITCODE_COMMANDLINE_ARGS_ERROR;
+        *exit_code = commandline_args_error;
       }
     }
   } else {
@@ -594,20 +295,19 @@ static void parse_commandline_args(int argc, char **argv, uint8_t *exit_code) {
       fprintf(stderr, "Too much command line arguments entered\n");
     else
       fprintf(stderr, "No command line arguments entered\n");
-    *exit_code = EXITCODE_COMMANDLINE_ARGS_ERROR;
+    *exit_code = commandline_args_error;
   }
 }
 
-static void parse_input(uint8_t *exit_code) {
+void calculate_input(uint8_t *exit_code) {
   char cur_ch, prev_ch;
   bool convert_flag;
   uint64_t cur_num;
   uint8_t digits_count, add_digit = 0;
-  digits_queue_t *temp = NULL;
-  digits_node_t *cur_node;
-  num_dllist_t *cur_num_ns = NULL, *result = NULL, *first = NULL,
-               *second = NULL;
-  results_stack_t *results_stack = stack_init(exit_code);
+  queue_t *temp = NULL;
+  queue_node_t *cur_node;
+  dllist_t *cur_num_ns = NULL, *result = NULL, *first = NULL, *second = NULL;
+  stack_t *results_stack = stack_init(exit_code);
 
   do {
     cur_ch = getchar();
@@ -615,7 +315,7 @@ static void parse_input(uint8_t *exit_code) {
 
   if (cur_ch == '\n' || cur_ch == EOF) {
     fprintf(stderr, "Empty input\n");
-    *exit_code = EXITCODE_INPUT_ERROR;
+    *exit_code = input_error;
   }
 
   prev_ch = cur_ch;
@@ -623,9 +323,9 @@ static void parse_input(uint8_t *exit_code) {
       (cur_ch != EOF)) {
     fprintf(stderr,
             "Input must start with a digit, a minus or with a blank space\n");
-    *exit_code = EXITCODE_INPUT_ERROR;
+    *exit_code = input_error;
   } else {
-    while (*exit_code == EXITCODE_ALL_FINE && (cur_ch = getchar()) != '\n' &&
+    while (*exit_code == all_fine && (cur_ch = getchar()) != '\n' &&
            cur_ch != EOF) {
       if (cur_ch == '/') {
         if ((cur_num_ns) && (!results_stack)) {
@@ -645,7 +345,7 @@ static void parse_input(uint8_t *exit_code) {
           results_stack = NULL;
         }
         fprintf(stderr, "Division is not supported\n");
-        *exit_code = EXITCODE_NO_DIVISION;
+        *exit_code = no_division;
       }
 
       if (isdigit(prev_ch)) {
@@ -668,7 +368,7 @@ static void parse_input(uint8_t *exit_code) {
               results_stack = NULL;
             }
             fprintf(stderr, "A number can't start with a 0\n");
-            *exit_code = EXITCODE_INPUT_ERROR;
+            *exit_code = input_error;
           } else {
             if (!temp) {
               temp = queue_init(exit_code);
@@ -698,7 +398,7 @@ static void parse_input(uint8_t *exit_code) {
             results_stack = NULL;
           }
           fprintf(stderr, "Missing space between number and operation\n");
-          *exit_code = EXITCODE_INPUT_ERROR;
+          *exit_code = input_error;
         } else if (cur_ch == ' ') {
           if (!temp) {
             temp = queue_init(exit_code);
@@ -753,7 +453,7 @@ static void parse_input(uint8_t *exit_code) {
             results_stack = NULL;
           }
           fprintf(stderr, "Incorrect characters in input\n");
-          *exit_code = EXITCODE_INPUT_ERROR;
+          *exit_code = input_error;
         }
       } else if (isoperation(prev_ch)) {
         if (isdigit(cur_ch)) {
@@ -775,7 +475,7 @@ static void parse_input(uint8_t *exit_code) {
               results_stack = NULL;
             }
             fprintf(stderr, "Missing space between number and operation\n");
-            *exit_code = EXITCODE_INPUT_ERROR;
+            *exit_code = input_error;
           } else {
             temp = queue_init(exit_code);
             cur_num_ns = dllist_init(exit_code);
@@ -801,7 +501,7 @@ static void parse_input(uint8_t *exit_code) {
             results_stack = NULL;
           }
           fprintf(stderr, "Missing space between operations\n");
-          *exit_code = EXITCODE_INPUT_ERROR;
+          *exit_code = input_error;
         } else if (cur_ch == ' ') {
           if (results_stack->top > 1) {
             first = stack_pop(results_stack, exit_code);
@@ -821,7 +521,7 @@ static void parse_input(uint8_t *exit_code) {
               result = NULL;
             }
             fprintf(stderr, "Missing numbers in input\n");
-            *exit_code = EXITCODE_INPUT_ERROR;
+            *exit_code = input_error;
           }
         } else if ((cur_ch != '/') && (cur_ch != ' ')) {
           if ((cur_num_ns) && (!results_stack)) {
@@ -841,7 +541,7 @@ static void parse_input(uint8_t *exit_code) {
             results_stack = NULL;
           }
           fprintf(stderr, "Incorrect characters in input\n");
-          *exit_code = EXITCODE_INPUT_ERROR;
+          *exit_code = input_error;
         }
       } else if (prev_ch == ' ') {
         if (isdigit(cur_ch)) {
@@ -869,13 +569,13 @@ static void parse_input(uint8_t *exit_code) {
             results_stack = NULL;
           }
           fprintf(stderr, "Incorrect characters in input\n");
-          *exit_code = EXITCODE_INPUT_ERROR;
+          *exit_code = input_error;
         }
       }
       prev_ch = cur_ch;
     }
   }
-  if ((isdigit(prev_ch)) && (*exit_code == EXITCODE_ALL_FINE)) {
+  if ((isdigit(prev_ch)) && (*exit_code == all_fine)) {
     if (!temp) {
       temp = queue_init(exit_code);
       cur_num_ns = dllist_init(exit_code);
@@ -931,34 +631,24 @@ static void parse_input(uint8_t *exit_code) {
         result = NULL;
       }
       fprintf(stderr, "Missing numbers in input\n");
-      *exit_code = EXITCODE_INPUT_ERROR;
+      *exit_code = input_error;
     }
   }
   if (results_stack) {
     if (results_stack->top == 1) {
       result = stack_pop(results_stack, exit_code);
-      if (*exit_code == EXITCODE_ALL_FINE)
+      if (*exit_code == all_fine)
         dllist_print(result, exit_code);
       if (result)
         dllist_clear(result, exit_code);
       stack_clear(results_stack, exit_code);
     } else if (results_stack->top > 1) {
       fprintf(stderr, "Not enough operations\n");
-      *exit_code = EXITCODE_INPUT_ERROR;
+      *exit_code = input_error;
       stack_clear(results_stack, exit_code);
     } else
       stack_clear(results_stack, exit_code);
   }
   if (temp)
     queue_clear(temp, exit_code);
-}
-
-int main(int argc, char **argv) {
-  uint8_t exit_code = EXITCODE_ALL_FINE;
-
-  parse_commandline_args(argc, argv, &exit_code);
-  if (exit_code == EXITCODE_ALL_FINE)
-    parse_input(&exit_code);
-
-  return exit_code;
 }
