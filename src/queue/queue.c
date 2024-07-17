@@ -2,8 +2,9 @@
 #include "../exit_codes.h"
 #include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-static queue_t *queue_init(uint8_t *exit_code) {
+queue_t *queue_init(uint8_t *exit_code) {
   queue_t *queue = (queue_t *)malloc(sizeof(queue_t));
 
   if (queue == NULL) {
@@ -20,7 +21,7 @@ static queue_t *queue_init(uint8_t *exit_code) {
   return queue;
 }
 
-static void queue_clear(queue_t *queue, uint8_t *exit_code) {
+void queue_clear(queue_t *queue, uint8_t *exit_code) {
   queue_node_t *temp;
 
   if (queue == NULL) {
@@ -41,7 +42,7 @@ static void queue_clear(queue_t *queue, uint8_t *exit_code) {
   free(queue);
 }
 
-static void queue_add(queue_t *queue, uint8_t element, uint8_t *exit_code) {
+void queue_add(queue_t *queue, uint8_t element, uint8_t *exit_code) {
   queue_node_t *node = (queue_node_t *)malloc(sizeof(queue_node_t));
 
   if (node == NULL) {

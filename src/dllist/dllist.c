@@ -1,11 +1,11 @@
-#include "num_dllist.h"
+#include "dllist.h"
 #include "../exit_codes.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-num_dllist_t *dllist_init(uint8_t *exit_code) {
-  num_dllist_t *dllist = (num_dllist_t *)malloc(sizeof(num_dllist_t));
+dllist_t *dllist_init(uint8_t *exit_code) {
+  dllist_t *dllist = (dllist_t *)malloc(sizeof(dllist_t));
 
   if (dllist == NULL) {
     fprintf(stderr, "Cannot initialize double linked list\n");
@@ -22,8 +22,8 @@ num_dllist_t *dllist_init(uint8_t *exit_code) {
   return dllist;
 }
 
-void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code) {
-  num_node_t *temp;
+void dllist_clear(dllist_t *dllist, uint8_t *exit_code) {
+  dllist_node_t *temp;
 
   if (dllist == NULL) {
     fprintf(stderr, "Cannot clear double linked list\n");
@@ -45,9 +45,9 @@ void dllist_clear(num_dllist_t *dllist, uint8_t *exit_code) {
   free(dllist);
 }
 
-void dllist_add_start(num_dllist_t *dllist, uint64_t element,
+void dllist_add_start(dllist_t *dllist, uint64_t element,
                       uint8_t *exit_code) {
-  num_node_t *node = (num_node_t *)malloc(sizeof(num_node_t));
+  dllist_node_t *node = (dllist_node_t *)malloc(sizeof(dllist_node_t));
 
   if ((node == NULL) || (dllist == NULL)) {
     fprintf(stderr, "Cannot add element to the start of double linked list\n");
@@ -74,9 +74,9 @@ void dllist_add_start(num_dllist_t *dllist, uint64_t element,
   ++dllist->size;
 }
 
-void dllist_add_end(num_dllist_t *dllist, uint64_t element,
+void dllist_add_end(dllist_t *dllist, uint64_t element,
                     uint8_t *exit_code) {
-  num_node_t *node = (num_node_t *)malloc(sizeof(num_node_t));
+  dllist_node_t *node = (dllist_node_t *)malloc(sizeof(dllist_node_t));
 
   if ((node == NULL) || (dllist == NULL)) {
     fprintf(stderr,
@@ -104,8 +104,8 @@ void dllist_add_end(num_dllist_t *dllist, uint64_t element,
   ++dllist->size;
 }
 
-void dllist_print(num_dllist_t *dllist, uint8_t *exit_code) {
-  num_node_t *temp = dllist->first;
+void dllist_print(dllist_t *dllist, uint8_t *exit_code) {
+  dllist_node_t *temp = dllist->first;
   bool flag = false;
 
   if (dllist == NULL) {

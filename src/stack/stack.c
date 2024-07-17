@@ -17,7 +17,7 @@ stack_t *stack_init(uint8_t *exit_code) {
   return stack;
 }
 
-void stack_push(stack_t *stack, num_dllist_t *element, uint8_t *exit_code) {
+void stack_push(stack_t *stack, dllist_t *element, uint8_t *exit_code) {
   if ((stack == NULL) || (element == NULL)) {
     fprintf(stderr, "Cannot push element to stack\n");
     *exit_code = other_errors;
@@ -32,8 +32,8 @@ void stack_push(stack_t *stack, num_dllist_t *element, uint8_t *exit_code) {
   }
 }
 
-num_dllist_t *stack_pop(stack_t *stack, uint8_t *exit_code) {
-  num_dllist_t *elem;
+dllist_t *stack_pop(stack_t *stack, uint8_t *exit_code) {
+  dllist_t *elem;
 
   if (stack->top) {
     --stack->top;
@@ -47,7 +47,7 @@ num_dllist_t *stack_pop(stack_t *stack, uint8_t *exit_code) {
 }
 
 void stack_clear(stack_t *stack, uint8_t *exit_code) {
-  num_dllist_t *temp;
+  dllist_t *temp;
 
   if (stack == NULL) {
     fprintf(stderr, "Cannot clear stack\n");
