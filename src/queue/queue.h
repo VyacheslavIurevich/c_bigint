@@ -1,3 +1,4 @@
+#pragma once
 #include <inttypes.h>
 #include <stddef.h>
 #define QUEUE_CAPACITY 5000

@@ -1,3 +1,4 @@
+#pragma once
 #include "../dllist/dllist.h"
 #include <stdbool.h>
 #define BASE                                                                   \
