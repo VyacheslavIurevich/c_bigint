@@ -1,7 +1,6 @@
 #pragma once
 #include <inttypes.h>
 #include <stddef.h>
-#define DLLIST_CAPACITY 300
 #define SIGN_NOT_SET -2
 
 typedef struct dllist_node_s {
@@ -16,7 +15,6 @@ typedef struct {
   int8_t sign : 2; // sign is -2 if sign isn't set, -1 if number < 0, 0 if
                    // number == 0, 1 if number > 0
   size_t size;
-  size_t capacity;
 } dllist_t;
 
 dllist_t *dllist_init(uint8_t *exit_code);

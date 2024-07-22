@@ -16,7 +16,6 @@ queue_t *queue_init(uint8_t *exit_code) {
   queue->head = NULL;
   queue->tail = NULL;
   queue->size = 0;
-  queue->capacity = QUEUE_CAPACITY;
 
   return queue;
 }
@@ -27,6 +26,7 @@ void queue_clear(queue_t *queue, uint8_t *exit_code) {
   if (queue == NULL) {
     fprintf(stderr, "Cannot clear queue\n");
     *exit_code = other_errors;
+    return;
   }
 
   while (queue->head != NULL) {
@@ -37,7 +37,6 @@ void queue_clear(queue_t *queue, uint8_t *exit_code) {
 
   queue->tail = NULL;
   queue->size = 0;
-  queue->capacity = 0;
 
   free(queue);
 }
@@ -48,11 +47,7 @@ void queue_add(queue_t *queue, uint8_t element, uint8_t *exit_code) {
   if (node == NULL) {
     fprintf(stderr, "Cannot create queue node\n");
     *exit_code = other_errors;
-  }
-
-  if (queue->size == queue->capacity) {
-    fprintf(stderr, "Queue is full, cannot add new node\n");
-    *exit_code = other_errors;
+    return;
   }
 
   node->decimal_digit = element;

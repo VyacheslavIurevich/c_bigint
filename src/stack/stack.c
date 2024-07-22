@@ -21,6 +21,7 @@ void stack_push(stack_t *stack, dllist_t *element, uint8_t *exit_code) {
   if ((stack == NULL) || (element == NULL)) {
     fprintf(stderr, "Cannot push element to stack\n");
     *exit_code = other_errors;
+    return;
   }
 
   if (stack->top < DEPTH) {
@@ -29,6 +30,7 @@ void stack_push(stack_t *stack, dllist_t *element, uint8_t *exit_code) {
   } else {
     fprintf(stderr, "Stack is full, cannot push element\n");
     *exit_code = other_errors;
+    return;
   }
 }
 
