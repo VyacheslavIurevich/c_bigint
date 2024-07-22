@@ -10,11 +10,11 @@ typedef struct dllist_node_s {
 } dllist_node_t;
 
 typedef struct {
+  size_t size;
   dllist_node_t *first;
   dllist_node_t *last;
   int8_t sign : 2; // sign is -2 if sign isn't set, -1 if number < 0, 0 if
                    // number == 0, 1 if number > 0
-  size_t size;
 } dllist_t;
 
 dllist_t *dllist_init(uint8_t *exit_code);
