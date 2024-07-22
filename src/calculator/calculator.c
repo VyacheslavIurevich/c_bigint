@@ -290,9 +290,11 @@ void parse_commandline_args(int argc, char **argv, uint8_t *exit_code) {
       if (strcmp(argv[1], "--infix") == 0) {
         fprintf(stderr, "This app doesn't support infix notation\n");
         *exit_code = no_infix;
+        return;
       } else {
         fprintf(stderr, "Incorrect command line argument\n");
         *exit_code = commandline_args_error;
+        return;
       }
     }
   } else {
@@ -301,6 +303,7 @@ void parse_commandline_args(int argc, char **argv, uint8_t *exit_code) {
     else
       fprintf(stderr, "No command line arguments entered\n");
     *exit_code = commandline_args_error;
+    return;
   }
 }
 
@@ -321,6 +324,7 @@ void calculate_input(uint8_t *exit_code) {
   if (cur_ch == '\n' || cur_ch == EOF) {
     fprintf(stderr, "Empty input\n");
     *exit_code = input_error;
+    return;
   }
 
   prev_ch = cur_ch;
@@ -329,6 +333,7 @@ void calculate_input(uint8_t *exit_code) {
     fprintf(stderr,
             "Input must start with a digit, a minus or with a blank space\n");
     *exit_code = input_error;
+    return;
   } else {
     while (*exit_code == all_fine && (cur_ch = getchar()) != '\n' &&
            cur_ch != EOF) {
@@ -351,6 +356,7 @@ void calculate_input(uint8_t *exit_code) {
         }
         fprintf(stderr, "Division is not supported\n");
         *exit_code = no_division;
+        return;
       }
 
       if (isdigit(prev_ch)) {
@@ -374,6 +380,7 @@ void calculate_input(uint8_t *exit_code) {
             }
             fprintf(stderr, "A number can't start with a 0\n");
             *exit_code = input_error;
+            return;
           } else {
             if (!temp) {
               temp = queue_init(exit_code);
@@ -404,6 +411,7 @@ void calculate_input(uint8_t *exit_code) {
           }
           fprintf(stderr, "Missing space between number and operation\n");
           *exit_code = input_error;
+          return;
         } else if (cur_ch == ' ') {
           if (!temp) {
             temp = queue_init(exit_code);
@@ -459,6 +467,7 @@ void calculate_input(uint8_t *exit_code) {
           }
           fprintf(stderr, "Incorrect characters in input\n");
           *exit_code = input_error;
+          return;
         }
       } else if (isoperation(prev_ch)) {
         if (isdigit(cur_ch)) {
@@ -481,6 +490,7 @@ void calculate_input(uint8_t *exit_code) {
             }
             fprintf(stderr, "Missing space between number and operation\n");
             *exit_code = input_error;
+            return;
           } else {
             temp = queue_init(exit_code);
             cur_num_ns = dllist_init(exit_code);
@@ -507,6 +517,7 @@ void calculate_input(uint8_t *exit_code) {
           }
           fprintf(stderr, "Missing space between operations\n");
           *exit_code = input_error;
+          return;
         } else if (cur_ch == ' ') {
           if (results_stack->top > 1) {
             first = stack_pop(results_stack, exit_code);
@@ -527,6 +538,7 @@ void calculate_input(uint8_t *exit_code) {
             }
             fprintf(stderr, "Missing numbers in input\n");
             *exit_code = input_error;
+            return;
           }
         } else if ((cur_ch != '/') && (cur_ch != ' ')) {
           if ((cur_num_ns) && (!results_stack)) {
@@ -547,6 +559,7 @@ void calculate_input(uint8_t *exit_code) {
           }
           fprintf(stderr, "Incorrect characters in input\n");
           *exit_code = input_error;
+          return;
         }
       } else if (prev_ch == ' ') {
         if (isdigit(cur_ch)) {
@@ -575,6 +588,7 @@ void calculate_input(uint8_t *exit_code) {
           }
           fprintf(stderr, "Incorrect characters in input\n");
           *exit_code = input_error;
+          return;
         }
       }
       prev_ch = cur_ch;
@@ -637,6 +651,7 @@ void calculate_input(uint8_t *exit_code) {
       }
       fprintf(stderr, "Missing numbers in input\n");
       *exit_code = input_error;
+      return;
     }
   }
   if (results_stack) {
@@ -651,6 +666,7 @@ void calculate_input(uint8_t *exit_code) {
       fprintf(stderr, "Not enough operations\n");
       *exit_code = input_error;
       stack_clear(results_stack, exit_code);
+      return;
     } else
       stack_clear(results_stack, exit_code);
   }

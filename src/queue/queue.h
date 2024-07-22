@@ -1,7 +1,6 @@
 #pragma once
 #include <inttypes.h>
 #include <stddef.h>
-#define QUEUE_CAPACITY 5000
 
 typedef struct queue_node_t {
   uint8_t decimal_digit;
@@ -12,7 +11,6 @@ typedef struct {
   queue_node_t *head;
   queue_node_t *tail;
   size_t size;
-  size_t capacity;
 } queue_t;
 
 queue_t *queue_init(uint8_t *exit_code);

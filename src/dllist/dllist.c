@@ -17,7 +17,6 @@ dllist_t *dllist_init(uint8_t *exit_code) {
   dllist->last = NULL;
   dllist->sign = SIGN_NOT_SET;
   dllist->size = 0;
-  dllist->capacity = DLLIST_CAPACITY;
 
   return dllist;
 }
@@ -28,6 +27,7 @@ void dllist_clear(dllist_t *dllist, uint8_t *exit_code) {
   if (dllist == NULL) {
     fprintf(stderr, "Cannot clear double linked list\n");
     *exit_code = other_errors;
+    return;
   }
 
   while (dllist->first != NULL) {
@@ -40,7 +40,6 @@ void dllist_clear(dllist_t *dllist, uint8_t *exit_code) {
   dllist->last = NULL;
   dllist->sign = SIGN_NOT_SET;
   dllist->size = 0;
-  dllist->capacity = 0;
 
   free(dllist);
 }
@@ -51,12 +50,7 @@ void dllist_add_start(dllist_t *dllist, uint64_t element, uint8_t *exit_code) {
   if ((node == NULL) || (dllist == NULL)) {
     fprintf(stderr, "Cannot add element to the start of double linked list\n");
     *exit_code = other_errors;
-  }
-
-  if (dllist->size == dllist->capacity) {
-    fprintf(stderr, "Cannot add element to the start of double linked list "
-                    "because it is full\n");
-    *exit_code = other_errors;
+    return;
   }
 
   node->digit = element;
@@ -80,12 +74,7 @@ void dllist_add_end(dllist_t *dllist, uint64_t element, uint8_t *exit_code) {
     fprintf(stderr,
             "Cannot add element to the end of the double linked list\n");
     *exit_code = other_errors;
-  }
-
-  if (dllist->size == dllist->capacity) {
-    fprintf(stderr, "Cannot add element to the end of the double linked list "
-                    "because it is full\n");
-    *exit_code = other_errors;
+    return;
   }
 
   node->digit = element;
@@ -105,10 +94,10 @@ void dllist_add_end(dllist_t *dllist, uint64_t element, uint8_t *exit_code) {
 void dllist_print(dllist_t *dllist, uint8_t *exit_code) {
   dllist_node_t *temp = dllist->first;
   bool flag = false;
-
   if (dllist == NULL) {
     fprintf(stderr, "Cannot print double linked list\n");
     *exit_code = other_errors;
+    return;
   }
 
   if (dllist->sign == -1)
