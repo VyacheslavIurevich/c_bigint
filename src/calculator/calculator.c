@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-bool is_bigger(dllist_t *first_num, dllist_t *second_num, uint8_t *exit_code) {
+bool is_bigger(dllist_t *first_num, dllist_t *second_num,
+                      uint8_t *exit_code) {
   dllist_node_t *temp_first = first_num->first,
                 *temp_second = second_num->first;
 
@@ -45,8 +46,8 @@ dllist_t *zero(uint8_t *exit_code) {
   return result;
 }
 
-dllist_t *addition(dllist_t *first_num, dllist_t *second_num, bool negative,
-                   uint8_t *exit_code) {
+dllist_t *addition(dllist_t *first_num, dllist_t *second_num,
+                          bool negative, uint8_t *exit_code) {
   dllist_t *result = dllist_init(exit_code);
   dllist_node_t *temp_first = first_num->last, *temp_second = second_num->last;
   uint64_t digit_sum;
@@ -89,8 +90,8 @@ dllist_t *addition(dllist_t *first_num, dllist_t *second_num, bool negative,
   return result;
 }
 
-dllist_t *subtraction(dllist_t *first_num, dllist_t *second_num, bool negative,
-                      uint8_t *exit_code) {
+dllist_t *subtraction(dllist_t *first_num, dllist_t *second_num,
+                             bool negative, uint8_t *exit_code) {
   dllist_t *result = dllist_init(exit_code);
   dllist_node_t *temp_first = first_num->last, *temp_second = second_num->last,
                 *search_node;
@@ -145,8 +146,8 @@ dllist_t *subtraction(dllist_t *first_num, dllist_t *second_num, bool negative,
   return result;
 }
 
-dllist_t *multiplication(dllist_t *first_num, dllist_t *second_num, int8_t sign,
-                         uint8_t *exit_code) {
+dllist_t *multiplication(dllist_t *first_num, dllist_t *second_num,
+                                int8_t sign, uint8_t *exit_code) {
   dllist_t *cur_num, *result = dllist_init(exit_code), *temp;
   dllist_node_t *temp_first = first_num->last, *temp_second;
   uint64_t first_digit, second_digit, partial = 0, remainder = 0,
@@ -195,8 +196,10 @@ dllist_t *multiplication(dllist_t *first_num, dllist_t *second_num, int8_t sign,
   return result;
 }
 
-dllist_t *calculate_operation_result(dllist_t *first_num, dllist_t *second_num,
-                                     char operation, uint8_t *exit_code) {
+dllist_t *calculate_operation_result(dllist_t *first_num,
+                                            dllist_t *second_num,
+                                            char operation,
+                                            uint8_t *exit_code) {
   if ((first_num == NULL) || (second_num == NULL)) {
     fprintf(stderr, "Cannot calculate operation result\n");
     *exit_code = other_errors;
@@ -277,7 +280,9 @@ dllist_t *calculate_operation_result(dllist_t *first_num, dllist_t *second_num,
   return NULL;
 }
 
-bool isoperation(char ch) { return ((ch == '+' || ch == '-' || ch == '*')); }
+bool isoperation(char ch) {
+  return ((ch == '+' || ch == '-' || ch == '*'));
+}
 
 void parse_commandline_args(int argc, char **argv, uint8_t *exit_code) {
   if (argc == 2) {
